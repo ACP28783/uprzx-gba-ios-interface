@@ -1,0 +1,12 @@
+const fileInput=document.querySelector('#rom');const statusEl=document.querySelector('#romStatus');const infoEl=document.querySelector('#romInfo');
+const games={BPRE:'Pokémon FireRed (USA, v1.0)',BPGE:'Pokémon LeafGreen (USA, v1.0)',BPEE:'Pokémon Emerald (USA)',AXVE:'Pokémon Ruby (USA)',AXPE:'Pokémon Sapphire (USA)',BPRJ:'Pokémon FireRed (Japan)',BPGJ:'Pokémon LeafGreen (Japan)',BPEJ:'Pokémon Emerald (Japan)',AXVJ:'Pokémon Ruby (Japan)',AXPJ:'Pokémon Sapphire (Japan)'};
+function ascii(bytes,start,len){return String.fromCharCode(...bytes.slice(start,start+len)).replace(/[^\x20-\x7E]/g,'·')}
+fileInput.addEventListener('change',async()=>{const f=fileInput.files?.[0];infoEl.hidden=true;infoEl.innerHTML='';if(!f){statusEl.textContent='No ROM selected.';return}statusEl.className='status';statusEl.textContent='Reading ROM locally…';try{const buf=await f.arrayBuffer();const b=new Uint8Array(buf);if(b.length<0xC0){throw new Error('File is too small to be a valid GBA ROM.')}const code=ascii(b,0xAC,4);const title=ascii(b,0xA0,12).trim();const maker=ascii(b,0xB0,2);const known=games[code];const size=(b.length/1024/1024).toFixed(2)+' MiB';const checksum=b[0xBD];const rows=[['File',f.name],['Size',size],['Header title',title||'Unknown'],['Game code',code],['Detected game',known||'Unrecognized GBA game code'],['Maker code',maker],['Header checksum byte','0x'+checksum.toString(16).padStart(2,'0').toUpperCase()],['Status',known?'Known game code; exact ROM revision still needs validation':'Could not match this game code to the built-in list']];infoEl.innerHTML=rows.map(([k,v])=>`<div><span>${escapeHtml(k)}</span><strong>${escapeHtml(v)}</strong></div>`).join('');infoEl.hidden=false;statusEl.className='status '+(known?'good':'bad');statusEl.textContent=known?'ROM read successfully on this device. Randomization engine is not yet available.':'ROM was read locally, but the game code is not in the current detection list.';}catch(e){statusEl.className='status bad';statusEl.textContent=e.message||'Could not read this file.'}});
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// A service worker caches only the app shell, never ROM files or user-selected data.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
