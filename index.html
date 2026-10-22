@@ -5,16 +5,26 @@
 </head>
 <body><main class="shell">
 <header><div class="mark">UPR<span>ZX</span></div><div><p class="eyebrow">LOCAL ROM TOOLKIT</p><h1>GBA Randomizer Lab</h1></div><span class="local-pill">ON DEVICE</span></header>
-<section class="notice"><strong>Local processing</strong><p>ROMs are processed in this browser and are not uploaded. This build supports starter selection/randomization for the listed GBA revisions; it is not yet full UPR ZX feature parity.</p></section>
+<section class="notice"><strong>Local processing</strong><p>ROMs are processed in this browser and are not uploaded. This is a community beta port of selected Gen 3 features. Processing stays on-device; keep a clean ROM backup and test outputs before relying on them.</p></section>
 <section class="panel"><div class="section-head"><div><p class="eyebrow">STEP 01</p><h2>Choose a ROM</h2></div><span class="number">01</span></div><label class="drop" for="rom"><span class="file-icon">＋</span><strong>Choose ROM from Files</strong><small>.gba · processing stays in this browser</small><input id="rom" type="file" accept=".gba,.bin,application/octet-stream"></label><div id="romStatus" class="status">No ROM selected.</div><div id="romInfo" class="rom-info" hidden></div></section>
 <section class="panel"><div class="section-head"><div><p class="eyebrow">STEP 02</p><h2>Starter settings</h2></div><span class="number">02</span></div><p class="muted">Choose a specific Pokémon for any slot, or leave it on Random. Selected Pokémon are kept while the other slots are randomized.</p>
 <label class="field-label" for="starter1">Starter slot 1</label><select id="starter1" class="starter-select" disabled><option value="random">Random Pokémon</option></select>
 <label class="field-label" for="starter2">Starter slot 2</label><select id="starter2" class="starter-select" disabled><option value="random">Random Pokémon</option></select>
 <label class="field-label" for="starter3">Starter slot 3</label><select id="starter3" class="starter-select" disabled><option value="random">Random Pokémon</option></select>
 <label class="check-row"><input type="checkbox" id="includeLegends"><span>Include legendary and mythical Pokémon</span></label><label class="check-row"><input type="checkbox" id="excludeCurrent" checked><span>Exclude the ROM's current starters from random choices</span></label>
+<details class="advanced" open><summary>Advanced GBA randomization</summary>
+<label class="check-row"><input type="checkbox" id="optWild" checked><span>Randomize wild encounters</span></label>
+<label class="check-row"><input type="checkbox" id="optTrainers"><span>Randomize trainer teams</span></label>
+<label class="check-row"><input type="checkbox" id="optStats"><span>Shuffle base stats (preserves each Pokémon's stat total)</span></label>
+<label class="check-row"><input type="checkbox" id="optTypes"><span>Randomize Pokémon types</span></label>
+<label class="check-row"><input type="checkbox" id="optAbilities"><span>Randomize abilities</span></label>
+<label class="check-row"><input type="checkbox" id="optMoves"><span>Randomize level-up learnsets</span></label>
+<label class="check-row"><input type="checkbox" id="optEvos"><span>Randomize evolution destinations</span></label>
+<label class="check-row"><input type="checkbox" id="optTMHM"><span>Randomize TM/HM compatibility</span></label>
+</details>
 <label class="field-label" for="preset">Preset</label><select id="preset"><option value="standard">Standard</option><option value="chaos">Chaos (includes legendary/mythical Pokémon)</option></select>
 <label class="field-label" for="seed">Seed (optional)</label><input id="seed" class="text-input" placeholder="e.g. 123456">
-<button id="run" disabled>Randomize Starters</button><p class="muted tiny">Only the starter selections are changed in this version. Keep an untouched backup of your original ROM.</p></section>
+<button id="run" disabled>Randomize ROM</button><p class="muted tiny">Only the selected features are changed. Some advanced features are experimental and have not been validated against every retail revision. Keep an untouched backup of your original ROM.</p></section>
 <section class="panel" id="output" hidden><div class="section-head"><div><p class="eyebrow">STEP 03</p><h2>Randomized ROM</h2></div><span class="number">03</span></div><p id="resultText" class="result-text"></p><div id="download"></div></section>
 <section class="panel"><div class="section-head"><div><p class="eyebrow">STEP 04</p><h2>Local privacy</h2></div><span class="number">03</span></div><ul class="checks"><li>ROM bytes are read in Safari only.</li><li>No ROM upload or server processing.</li><li>This prototype does not retain the selected ROM after the page is closed.</li></ul></section><footer>Independent compatibility prototype · Pokémon is a trademark of Nintendo / The Pokémon Company. Not affiliated with or endorsed by them.</footer>
 </main><script src="app.js"></script></body></html>
