@@ -1,0 +1,83 @@
+[
+  {
+    "label": "Ruby (U)",
+    "game": "AXVE",
+    "version": 0,
+    "type": "Ruby",
+    "starterOffset": 4159172,
+    "pokemonCount": 411,
+    "crc32": "F0815EE7"
+  },
+  {
+    "label": "Ruby (E)",
+    "game": "AXVE",
+    "version": 1,
+    "type": "Ruby",
+    "starterOffset": 4159200,
+    "pokemonCount": 411,
+    "crc32": "61641576"
+  },
+  {
+    "label": "Sapphire (U)",
+    "game": "AXPE",
+    "version": 0,
+    "type": "Sapp",
+    "starterOffset": 4159260,
+    "pokemonCount": 411,
+    "crc32": "554DEDC4"
+  },
+  {
+    "label": "Sapphire (E)",
+    "game": "AXPE",
+    "version": 1,
+    "type": "Sapp",
+    "starterOffset": 4159292,
+    "pokemonCount": 411,
+    "crc32": "BAFEDAE5"
+  },
+  {
+    "label": "Emerald (U)",
+    "game": "BPEE",
+    "version": 0,
+    "type": "Em",
+    "starterOffset": 5971448,
+    "pokemonCount": 411,
+    "crc32": "1F1C08FB"
+  },
+  {
+    "label": "Fire Red (U) 1.0",
+    "game": "BPRE",
+    "version": 0,
+    "type": "FRLG",
+    "starterOffset": 1481653,
+    "pokemonCount": 411,
+    "crc32": "DD88761C"
+  },
+  {
+    "label": "Fire Red (U) 1.1",
+    "game": "BPRE",
+    "version": 1,
+    "type": "FRLG",
+    "starterOffset": 1481773,
+    "pokemonCount": 411,
+    "crc32": "84EE4776"
+  },
+  {
+    "label": "Leaf Green (U) 1.0",
+    "game": "BPGE",
+    "version": 0,
+    "type": "FRLG",
+    "starterOffset": 1481617,
+    "pokemonCount": 411,
+    "crc32": "D69C96CC"
+  },
+  {
+    "label": "Leaf Green (U) 1.1",
+    "game": "BPGE",
+    "version": 1,
+    "type": "FRLG",
+    "starterOffset": 1481737,
+    "pokemonCount": 411,
+    "crc32": "DAFFECEC"
+  }
+]

@@ -1,1 +1,1 @@
-{"name":"UPR ZX GBA Randomizer Lab","short_name":"UPR ZX Lab","start_url":"./index.html","display":"standalone","background_color":"#10131b","theme_color":"#10131b","description":"Local GBA ROM inspector and Universal Pokémon Randomizer ZX iOS port prototype."}
+{"name":"UPR ZX GBA Starter Randomizer","short_name":"GBA Randomizer","start_url":"./","display":"standalone","background_color":"#10131b","theme_color":"#10131b","description":"Local GBA Pokémon starter randomizer. ROMs are processed on device."}
