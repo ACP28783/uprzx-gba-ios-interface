@@ -1,36 +1,40 @@
-# UPR ZX GBA Starter Randomizer (iOS Safari)
+# UPR ZX iOS Web Prototype (GBA priority)
 
-This project is an on-device browser implementation based on the uploaded Universal Pokémon Randomizer ZX 4.6.1 source and the existing iOS-friendly prototype.
+## Current feature status
+This iPhone-friendly browser app supports **starter randomization and manually selecting individual starter Pokémon** for the game revisions listed below. It is not yet a full port of Universal Pokémon Randomizer ZX.
 
-## Current functionality
+- Load a supported `.gba` ROM in Safari.
+- Set any of the three starter slots to a specific Pokémon, leaving other slots set to Random.
+- Prevent duplicate manually selected Pokémon; random slots are filled without duplicating fixed selections.
+- Optionally include legendary/mythical Pokémon in the random pool and exclude the ROM's current starters from random choices.
+- Use a seed to reproduce the same choices with the same ROM/settings.
+- Export a separate `-starters.gba` file. The original selected file is not changed.
 
-- Reads a `.gba` ROM locally in Safari.
-- Detects and supports only these original retail revisions: Ruby (US/EU), Sapphire (US/EU), Emerald (US), FireRed (US 1.0/1.1), and LeafGreen (US 1.0/1.1).
-- Uses the Gen 3 Pokédex-order pointer table to translate between internal species IDs and National Pokédex numbers.
-- Randomizes the three starter choices, including the repeated FireRed/LeafGreen script references required by those games.
-- Supports a deterministic seed and a preset that can include/exclude legendary and mythical Pokémon.
-- Exports a new `.gba` file without modifying the original selected file.
-- Caches the app shell and game offset database for offline use after first visit over HTTPS.
+The implementation currently changes starter references only. Wild encounters, trainer parties, stats, types, moves, abilities, evolutions, items, and other UPR ZX features are not implemented. Output has not been exhaustively validated against real retail ROM dumps, so keep backups and test the result in an emulator before relying on it.
 
-## Important limitations
+The supplied Universal Pokémon Randomizer ZX 4.6.1 source is a Java desktop project. Full GBA feature parity requires porting and validating the Gen 3 ROM handler and its dependencies, including species/data tables, binary utilities, randomization rules, and patching logic. Replacing the Swing interface alone is not sufficient.
 
-**This is not full UPR ZX feature parity.** The current web engine only randomizes starters. It does not yet randomize wild encounters, trainers, static/gift Pokémon, base stats, types, moves, abilities, evolutions, items, TMs, trades, or other original desktop features. It should be considered an early functional port, not a release-quality replacement for UPR ZX. Test generated ROMs in an emulator and retain backups.
+## Privacy and offline behavior
+- ROM bytes are read in Safari on the iPhone. This prototype has no code that uploads ROMs.
+- The service worker caches the app shell (HTML, CSS, JavaScript, and manifest) after the first successful visit over HTTPS.
+- Once cached, the **prototype interface** can open offline. This does not add the missing randomization engine.
+- The app shell does not intentionally cache the selected ROM or generated output.
 
-The ROM detector uses game code and revision byte plus structural pointer-table validation. This is not a cryptographic validation of a clean dump. Unsupported revisions, ROM hacks, and patched files are expected to fail validation. Do not use save files or ROMs you do not have the right to use.
+## iPhone-only setup using GitHub Pages
+You can do this from Safari; no computer is required. GitHub's mobile interface can change, so labels may differ slightly.
 
-## Publish from iPhone using GitHub Pages
+1. On the iPhone, download and extract `uprzx-ios-web-prototype.zip` in the Files app.
+2. In Safari, sign in at GitHub and create a new **public** repository, for example `uprzx-gba-web`. Do not initialize it with a README if GitHub offers that choice.
+3. Open the new repository, choose **Add file → Upload files**, and upload the contents of the extracted `uprzx-ios-web` folder. Upload these files at the repository root: `index.html`, `style.css`, `app.js`, `manifest.webmanifest`, and `service-worker.js`. Upload `README.md` too if desired. Do not upload the ZIP as the only file.
+4. Open repository **Settings → Pages**. Under build/deployment, select **Deploy from a branch**, choose `main` and `/ (root)`, then save.
+5. Wait for GitHub Pages to publish, then open the Pages URL in Safari. Visit it while online and wait for the page to finish loading so the service worker can cache the app shell.
+6. In Safari, tap **Share → Add to Home Screen**. Open it once while online, then test airplane mode.
+7. Use **Choose ROM from Files**. The selected ROM is read locally, and starter edits are made in browser memory. Save the output through the generated download link.
 
-1. Extract this ZIP in the iOS Files app.
-2. In Safari, sign in to GitHub and create a repository.
-3. Upload the *contents* of this folder to the repository root: `index.html`, `style.css`, `app.js`, `service-worker.js`, `manifest.webmanifest`, `rom-database.json`, `README.md`, and `UPRZX-LICENSE.txt`.
-4. In repository Settings → Pages, choose Deploy from a branch, branch `main`, folder `/ (root)`, then save.
-5. Open the GitHub Pages URL while online and allow it to finish loading. Add to Home Screen if desired.
-6. Test the app offline after the first successful load. iOS may evict cached website data, so periodically open it online again.
+If the upload UI does not let you select several files at once, add them one by one using **Add file → Create new file** or the repository's upload interface. Ensure the five runtime files are in the repository root, not nested inside another folder.
 
-## Local privacy
+## Supported header IDs in this prototype
+The current list includes common IDs for US and Japanese versions of FireRed, LeafGreen, Emerald, Ruby, and Sapphire. A matching game code is not proof that a ROM revision is supported by a future randomization engine.
 
-The app contains no upload endpoint, network API calls, analytics, or remote script dependencies. Its only network requests are same-origin app files used for loading and caching. The selected ROM is read via the browser File API and never intentionally sent to a server.
-
-## Attribution and license
-
-This work references Universal Pokémon Randomizer ZX 4.6.1. The upstream license text is included as `UPRZX-LICENSE.txt`. Preserve the license and attribution when redistributing. This is an independent project and is not affiliated with Nintendo or The Pokémon Company.
+## Original source and attribution
+This prototype was developed with reference to Universal Pokémon Randomizer ZX 4.6.1. Consult the original project's `LICENSE.txt` for applicable license terms. This project is not affiliated with Nintendo or The Pokémon Company.

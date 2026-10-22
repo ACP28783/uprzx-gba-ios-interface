@@ -10,12 +10,62 @@ function findAll(b, needle){const out=[]; outer:for(let i=0;i<=b.length-needle.l
 function decodeHex(s){return s.match(/../g).map(x=>parseInt(x,16));}
 function detect(b){const game=ascii(b,0xAC,4),version=b[0xBC];return ROMS.find(r=>r.game===game&&r.version===version)||null;}
 function speciesMap(b){const prefix=decodeHex('0448814208D0481C0004000C05E00000');const matches=findAll(b,prefix);if(matches.length!==3)throw new Error(`Expected the original Gen 3 Pokédex pointer signature 3 times; found ${matches.length}. This ROM may be a hack, unsupported revision, or bad dump.`);const table=readPtr(b,matches[1]+16);if(table<0||table+822>b.length)throw new Error('Pokédex mapping pointer is outside this ROM.');const valid=[];for(let internal=1;internal<=411;internal++){const dex=u16(b,table+(internal-1)*2);if(dex>=1&&dex<=386)valid.push({internal,dex});}if(valid.length<200)throw new Error('Pokédex mapping did not look valid; refusing to modify this ROM.');return valid;}
+function populateStarterSelectors(mapping,current){
+  for(let slot=1;slot<=3;slot++){
+    const select=$(`#starter${slot}`); if(!select) continue;
+    const previous=select.value; select.replaceChildren(new Option('Random Pokémon','random'));
+    const sorted=mapping.slice().sort((a,b)=>a.dex-b.dex||a.internal-b.internal);
+    for(const item of sorted){
+      const name=dexNames[item.dex]||`Pokémon ${item.dex}`;
+      select.add(new Option(`#${item.dex} ${name}`,String(item.internal)));
+    }
+    select.value=[...select.options].some(o=>o.value===previous)?previous:'random';
+    select.disabled=false;
+  }
+}
 function seededRng(seed){let a=0x9e3779b9;for(let i=0;i<seed.length;i++)a=Math.imul(a^seed.charCodeAt(i),2654435761)>>>0;return()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
 function sample(pool,n,rng){const a=pool.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,n);}
 let ROMS=[];fetch('./rom-database.json').then(r=>r.json()).then(x=>ROMS=x).catch(()=>{});
-romInput.addEventListener('change',async()=>{loaded=null;infoEl.hidden=true;outputEl.hidden=true;runBtn.disabled=true;const f=romInput.files?.[0];if(!f){statusEl.textContent='No ROM selected.';return;}statusEl.className='status';statusEl.textContent='Reading ROM locally…';try{if(!ROMS.length)ROMS=await (await fetch('./rom-database.json')).json();const bytes=new Uint8Array(await f.arrayBuffer());if(bytes.length<0xC0)throw new Error('File is too small to be a GBA ROM.');const code=ascii(bytes,0xAC,4), version=bytes[0xBC], entry=detect(bytes);if(!entry)throw new Error(`Game code ${code}, revision ${version} is not in the supported database. Supported: US/EU Ruby and Sapphire, US Emerald, US FireRed/LeafGreen 1.0 and 1.1.`);const mapping=speciesMap(bytes);if(entry.starterOffset+520>=bytes.length)throw new Error('Starter table offset is outside this file.');const starterOffsets=entry.type==='FRLG'?[entry.starterOffset,entry.starterOffset+5,entry.starterOffset+515,entry.starterOffset+520,entry.starterOffset+461,entry.starterOffset+466]:[entry.starterOffset,entry.starterOffset+2,entry.starterOffset+4];const current=entry.type==='FRLG'?[u16(bytes,entry.starterOffset),u16(bytes,entry.starterOffset+515),u16(bytes,entry.starterOffset+461)]:[u16(bytes,entry.starterOffset),u16(bytes,entry.starterOffset+2),u16(bytes,entry.starterOffset+4)];loaded={file:f,bytes,entry,mapping,current};infoEl.innerHTML=[['File',f.name],['Size',(bytes.length/1048576).toFixed(2)+' MiB'],['Game code',code],['Revision',version],['Detected game',entry.label],['Valid species slots',mapping.length],['Current starter IDs',current.map(id=>{const m=mapping.find(x=>x.internal===id);return m?`#${m.dex} ${dexNames[m.dex]||''}`:`internal ID ${id}`}).join(' · ')]].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');infoEl.hidden=false;statusEl.className='status good';statusEl.textContent='ROM recognized. Starter randomization is available and runs locally.';runBtn.disabled=false;}catch(e){statusEl.className='status bad';statusEl.textContent=e.message||'Could not read this ROM.';}}
+romInput.addEventListener('change',async()=>{loaded=null;infoEl.hidden=true;outputEl.hidden=true;runBtn.disabled=true;const f=romInput.files?.[0];if(!f){statusEl.textContent='No ROM selected.';return;}statusEl.className='status';statusEl.textContent='Reading ROM locally…';try{if(!ROMS.length)ROMS=await (await fetch('./rom-database.json')).json();const bytes=new Uint8Array(await f.arrayBuffer());if(bytes.length<0xC0)throw new Error('File is too small to be a GBA ROM.');const code=ascii(bytes,0xAC,4), version=bytes[0xBC], entry=detect(bytes);if(!entry)throw new Error(`Game code ${code}, revision ${version} is not in the supported database. Supported: US/EU Ruby and Sapphire, US Emerald, US FireRed/LeafGreen 1.0 and 1.1.`);const mapping=speciesMap(bytes);if(entry.starterOffset+520>=bytes.length)throw new Error('Starter table offset is outside this file.');const starterOffsets=entry.type==='FRLG'?[entry.starterOffset,entry.starterOffset+5,entry.starterOffset+515,entry.starterOffset+520,entry.starterOffset+461,entry.starterOffset+466]:[entry.starterOffset,entry.starterOffset+2,entry.starterOffset+4];const current=entry.type==='FRLG'?[u16(bytes,entry.starterOffset),u16(bytes,entry.starterOffset+515),u16(bytes,entry.starterOffset+461)]:[u16(bytes,entry.starterOffset),u16(bytes,entry.starterOffset+2),u16(bytes,entry.starterOffset+4)];loaded={file:f,bytes,entry,mapping,current};populateStarterSelectors(mapping,current);infoEl.innerHTML=[['File',f.name],['Size',(bytes.length/1048576).toFixed(2)+' MiB'],['Game code',code],['Revision',version],['Detected game',entry.label],['Valid species slots',mapping.length],['Current starter IDs',current.map(id=>{const m=mapping.find(x=>x.internal===id);return m?`#${m.dex} ${dexNames[m.dex]||''}`:`internal ID ${id}`}).join(' · ')]].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');infoEl.hidden=false;statusEl.className='status good';statusEl.textContent='ROM recognized. Starter randomization is available and runs locally.';runBtn.disabled=false;}catch(e){statusEl.className='status bad';statusEl.textContent=e.message||'Could not read this ROM.';}}
 );
 $('#preset').addEventListener('change',e=>{const p=e.target.value;$('#includeLegends').checked=p==='chaos';$('#excludeCurrent').checked=p!=='chaos';});
-runBtn.addEventListener('click',()=>{if(!loaded)return;try{const out=loaded.bytes.slice(),{entry,mapping,current,file}=loaded;let pool=mapping.filter(x=>x.dex<=386);if($('#excludeCurrent').checked)pool=pool.filter(x=>!current.includes(x.internal));if(!$('#includeLegends').checked)pool=pool.filter(x=>![144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386].includes(x.dex));if(pool.length<3)throw new Error('Not enough valid species in the randomization pool.');const seed=$('#seed').value.trim()||`${Date.now()}-${file.name}`;const rng=seededRng(seed),chosen=sample(pool,3,rng);const ids=chosen.map(x=>x.internal);if(entry.type==='FRLG'){u16write(out,entry.starterOffset,ids[0]);u16write(out,entry.starterOffset+5,ids[1]);u16write(out,entry.starterOffset+515,ids[1]);u16write(out,entry.starterOffset+520,ids[2]);u16write(out,entry.starterOffset+461,ids[2]);u16write(out,entry.starterOffset+466,ids[0]);}else{u16write(out,entry.starterOffset,ids[0]);u16write(out,entry.starterOffset+2,ids[1]);u16write(out,entry.starterOffset+4,ids[2]);}const label=chosen.map(x=>`#${x.dex} ${dexNames[x.dex]||'Pokémon'}`).join(', ');const blob=new Blob([out],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=file.name.replace(/\.gba$/i,'')+'-randomized.gba';a.textContent='Save randomized ROM to Files';a.className='download-link';$('#download').replaceChildren(a);$('#resultText').textContent=`Seed: ${seed}\nStarters: ${label}\nOriginal ROM left unchanged. Output was generated in this browser.`;outputEl.hidden=false;outputEl.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){statusEl.className='status bad';statusEl.textContent=e.message||'Randomization failed.';}});
+runBtn.addEventListener('click',()=>{
+ if(!loaded)return;
+ try{
+  const out=loaded.bytes.slice(),{entry,mapping,current,file}=loaded;
+  let pool=mapping.filter(x=>x.dex>=1&&x.dex<=386);
+  if($('#excludeCurrent').checked)pool=pool.filter(x=>!current.includes(x.internal));
+  const legends=[144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386];
+  if(!$('#includeLegends').checked)pool=pool.filter(x=>!legends.includes(x.dex));
+  const seed=$('#seed').value.trim()||`${Date.now()}-${file.name}`;
+  const rng=seededRng(seed);
+  const selects=[1,2,3].map(n=>$(`#starter${n}`).value);
+  const fixed=selects.filter(v=>v!=='random').map(Number);
+  if(new Set(fixed).size!==fixed.length)throw new Error('Choose a different Pokémon for each manually selected starter slot.');
+  const chosen=[];
+  for(let i=0;i<3;i++){
+    if(selects[i]!=='random'){
+      const found=mapping.find(x=>x.internal===Number(selects[i]));
+      if(!found)throw new Error('A selected Pokémon is not valid for this ROM. Please choose it again.');
+      chosen.push(found);
+    }else{
+      const available=pool.filter(x=>!chosen.some(y=>y.internal===x.internal)&&!fixed.includes(x.internal));
+      if(!available.length)throw new Error('There are not enough Pokémon left in the randomization pool for these selections.');
+      chosen.push(available[Math.floor(rng()*available.length)]);
+    }
+  }
+  const ids=chosen.map(x=>x.internal);
+  if(entry.type==='FRLG'){
+    u16write(out,entry.starterOffset,ids[0]);u16write(out,entry.starterOffset+5,ids[1]);u16write(out,entry.starterOffset+515,ids[1]);u16write(out,entry.starterOffset+520,ids[2]);u16write(out,entry.starterOffset+461,ids[2]);u16write(out,entry.starterOffset+466,ids[0]);
+  }else{
+    u16write(out,entry.starterOffset,ids[0]);u16write(out,entry.starterOffset+2,ids[1]);u16write(out,entry.starterOffset+4,ids[2]);
+  }
+  const label=chosen.map((x,i)=>`Slot ${i+1}: #${x.dex} ${dexNames[x.dex]||'Pokémon'}`).join('\n');
+  const blob=new Blob([out],{type:'application/octet-stream'}),url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=file.name.replace(/\.gba$/i,'')+'-starters.gba';a.textContent='Save randomized ROM to Files';a.className='download-link';
+  $('#download').replaceChildren(a);$('#resultText').textContent=`Seed: ${seed}\n${label}\nOriginal ROM left unchanged. Output was generated locally in this browser.`;
+  outputEl.hidden=false;outputEl.scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){statusEl.className='status bad';statusEl.textContent=e.message||'Randomization failed.';}
+});
 function u16write(b,o,v){b[o]=v&255;b[o+1]=(v>>>8)&255;}
 if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
